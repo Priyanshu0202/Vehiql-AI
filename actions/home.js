@@ -2,8 +2,6 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { db } from "@/lib/prisma";
-import aj from "@/lib/arcjet";
-import { request } from "@arcjet/next";
 
 // Function to serialize car data
 function serializeCarData(car) {
@@ -31,7 +29,7 @@ export async function getFeaturedCars(limit = 3) {
 
         return cars.map(serializeCarData);
     } catch (error) {
-        throw new Error("Error fetching featured cars:" + error.message);
+        throw new Error("Error fetching featured cars: " + error.message);
     }
 }
 
@@ -47,31 +45,6 @@ async function fileToBase64(file) {
  */
 export async function processImageSearch(file) {
     try {
-        // Get request data for ArcJet
-        const req = await request();
-
-        // Check rate limit
-        const decision = await aj.protect(req, {
-            requested: 1, // Specify how many tokens to consume
-        });
-
-        if (decision.isDenied()) {
-            if (decision.reason.isRateLimit()) {
-                const { remaining, reset } = decision.reason;
-                console.error({
-                    code: "RATE_LIMIT_EXCEEDED",
-                    details: {
-                        remaining,
-                        resetInSeconds: reset,
-                    },
-                });
-
-                throw new Error("Too many requests. Please try again later.");
-            }
-
-            throw new Error("Request blocked");
-        }
-
         // Check if API key is available
         if (!process.env.GEMINI_API_KEY) {
             throw new Error("Gemini API key is not configured");
@@ -121,7 +94,6 @@ export async function processImageSearch(file) {
         try {
             const carDetails = JSON.parse(cleanedText);
 
-            // Return success response with data
             return {
                 success: true,
                 data: carDetails,
@@ -135,6 +107,6 @@ export async function processImageSearch(file) {
             };
         }
     } catch (error) {
-        throw new Error("AI Search error:" + error.message);
+        throw new Error("AI Search error: " + error.message);
     }
 }
