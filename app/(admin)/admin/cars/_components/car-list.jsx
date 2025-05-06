@@ -99,9 +99,14 @@ export const CarsList = () => {
 
     // Handle successful operations
     useEffect(() => {
+        console.log("deleteResult:", deleteResult);
+
         if (deleteResult?.success) {
             toast.success("Car deleted successfully");
             fetchCars(search);
+        }
+        else {
+            toast.error(deleteResult.error);
         }
 
         if (updateResult?.success) {
@@ -121,6 +126,7 @@ export const CarsList = () => {
         if (!carToDelete) return;
 
         await deleteCarFn(carToDelete.id);
+        console.log("Delete called finished")
         setDeleteDialogOpen(false);
         setCarToDelete(null);
     };

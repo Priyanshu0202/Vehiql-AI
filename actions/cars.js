@@ -266,6 +266,23 @@ export async function deleteCar(id) {
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorized");
 
+        // Check if any test drive bookings exist for this car
+        const existingBooking = await db.testDriveBooking.findFirst({
+            where: {
+                carId: id,
+                status: {
+                    in: ["PENDING", "CONFIRMED"], // Only block if active bookings exist
+                },
+            },
+        });
+
+        if (existingBooking) {
+            return {
+                success: false,
+                error: "Car cannot be deleted as it is booked for a test drive.",
+            };
+        }
+
         // First, fetch the car to get its images
         const car = await db.car.findUnique({
             where: { id },
